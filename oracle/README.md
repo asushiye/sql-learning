@@ -1,0 +1,4 @@
+# oracle 
+
+
+## sql   ------  partition 

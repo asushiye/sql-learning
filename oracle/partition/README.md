@@ -167,8 +167,7 @@ select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART02);
 select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART03);
 select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART04);
 ```
-
-!(partition_data)[partition_data.png]
+![partition_data](partition_data.png)
 
 #### 查询分区字典信息，参考上面
 ```

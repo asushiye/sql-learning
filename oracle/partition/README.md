@@ -65,6 +65,8 @@ select *
 
 下面我们通过一张实例表来实现不同分区策略
 
+提示下面脚本使用演示用的表空间，实际我在测试指定的表空间为CRMDATA
+
 ### 正常表创建
 
 ```
@@ -83,21 +85,25 @@ CREATE TABLE AUS_BONUS
 ```
 --插入数据
 ```
-insert into AUS_BONUS value(1, 'AUS10001', 10, 1, 81,sysdate,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(2, 'AUS10001', 10, 1, 81,sysdate,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(3, 'AUS10001', 10, 1, 81,sysdate,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(3, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(4, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(5, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(6, 'AUS10001', 10, 5, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(7, 'AUS10001', 10, 5, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(8, 'AUS10001', 10, 5, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(9, 'AUS10001', 10, 7, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(10, 'AUS10001', 10, 7, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(11, 'AUS10001', 10, 7, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(12, 'AUS10001', 10, 9, 83,sysdate,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(13, 'AUS10001', 10, 9, 83,sysdate,'aus_bonus_sql.insert_bonus');
-insert into AUS_BONUS value(14, 'AUS10001', 10, 9, 83,sysdate,'aus_bonus_sql.insert_bonus');
+delete from AUS_BONUS;
+insert into AUS_BONUS values(1, 'AUS10001', 10, 1, 81,sysdate-730,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(2, 'AUS10001', 10, 1, 81,sysdate,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(3, 'AUS10001', 10, 1, 81,sysdate,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(4, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(5, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(6, 'AUS10001', 10, 2, 81,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(7, 'AUS10001', 10, 2, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(8, 'AUS10001', 10, 5, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(9, 'AUS10001', 10, 5, 82,sysdate-365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(10, 'AUS10001', 10, 2, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(11, 'AUS10001', 10, 7, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(12, 'AUS10001', 10, 7, 82,sysdate+365,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(13, 'AUS10001', 10, 2, 83,sysdate,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(14, 'AUS10001', 10, 9, 83,sysdate,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(15, 'AUS10001', 10, 9, 83,sysdate,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(16, 'AUS10001', 10, 9, 84,sysdate+720,'aus_bonus_sql.insert_bonus');
+insert into AUS_BONUS values(17, 'AUS10001', 10, 2, 84,sysdate+720,'aus_bonus_sql.insert_bonus');
+select * from AUS_BONUS;
 ```
 
 查看分区字典信息
@@ -120,6 +126,7 @@ where table_name='AUS_BONUS';
 
 下面我们通过 **create_date** 日期来分区设置
 
+#### 创建分区表
 ```
 CREATE TABLE AUS_BONUS_RANGE
 (
@@ -134,12 +141,14 @@ CREATE TABLE AUS_BONUS_RANGE
 ) 
 PARTITION BY RANGE(create_date)
 (
-PARTITION AUS_BONUS_PART01 VALUES LESS THEN (to_date('2017-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_01,
-PARTITION AUS_BONUS_PART02 VALUES LESS THEN (to_date('2018-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_02,
-PARTITION AUS_BONUS_PART03 VALUES LESS THEN (to_date('2019-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_03,
+PARTITION AUS_BONUS_PART01 VALUES LESS THAN (to_date('2017-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_01,
+PARTITION AUS_BONUS_PART02 VALUES LESS THAN (to_date('2018-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_02,
+PARTITION AUS_BONUS_PART03 VALUES LESS THAN (to_date('2019-01-01','yyyy-mm-dd') ) TABLESPACE test_tbs_03,
 PARTITION AUS_BONUS_PART04 VALUES LESS THAN (MAXVALUE) TABLESPACE test_tbs_04
 );
 ```
+
+执行上面脚本，请注意表空间修改为已经存在的表空间，若使用用户默认的表空间，可以省略表空间语句(TABLESPACE test_tbs_01)
 
 MAXVALUE 日期表示不在前面的分区中，则就存放在最大值分区中
 
@@ -147,24 +156,39 @@ MAXVALUE 日期表示不在前面的分区中，则就存放在最大值分区�
 
 从语法上看，可以省略表空间(TABLESPACE test_tbs_01),使用默认表空间进行创建。
 
--- 插入数据
-insert into AUS_BONUS_RANGE as select * from AUS_BONUS;
+真正在使用过程中，不建议使用MAXVALUE来创建分区
 
-查询分区字典信息，参考上面
+#### 操作数据
+```
+delete from AUS_BONUS_RANGE;
+insert into AUS_BONUS_RANGE  select * from AUS_BONUS;
+select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART01);
+select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART02);
+select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART03);
+select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART04);
+```
+
+!(partition_data)[partition_data.png]
+
+#### 查询分区字典信息，参考上面
 ```
 select table_name,partitioning_type,partition_count,status 
 from dba_part_tables 
 where table_name='AUS_BONUS_RANGE';
-
+```
+![dba_tab_partitions](dba_tab_partitions.png)
+```
 select table_name,partition_name,num_rows,tablespace_name,segment_created
 from dba_tab_partitions 
 where table_name='AUS_BONUS_RANGE';
-
 ```
+![dba_part_tables](dba_part_tables.png)
 
 ### 2. 列表分区策略 - LIST 
 
 下面我们通过 **data_origin** 固定值来分区设置
+
+#### 创建分区表
 
 ```
 CREATE TABLE AUS_BONUS_LIST
@@ -193,16 +217,33 @@ DEFAULT 列表的值不在前面的分区中，则就存放在这个默认分区
 
 从语法上看，可以省略表空间(TABLESPACE test_tbs_01),使用默认表空间进行创建。
 
--- 插入数据
+#### 操作数据
+```
+delete from AUS_BONUS_LIST;
 insert into AUS_BONUS_LIST as select * from AUS_BONUS;
 
-查询分区字典信息，脚本参考上面
+select * from AUS_BONUS_LIST partition(AUS_BONUS_PART01);
+select * from AUS_BONUS_LIST partition(AUS_BONUS_PART02);
+select * from AUS_BONUS_LIST partition(AUS_BONUS_PART03);
+select * from AUS_BONUS_LIST partition(AUS_BONUS_PART04);
+```
 
+#### 查询分区字典信息，脚本参考上面
+```
+select table_name,partitioning_type,partition_count,status 
+from dba_part_tables 
+where table_name='AUS_BONUS_LIST';
+
+select table_name,partition_name,num_rows,tablespace_name,segment_created
+from dba_tab_partitions 
+where table_name='AUS_BONUS_LIST';
+```
 
 ### 3. 散列分区策略 - HASH
 
 下面我们通过 **id** 利用散列算法，将数据均摊到不同分区中
 
+#### 创建分区表
 ```
 CREATE TABLE AUS_BONUS_HASH
 (
@@ -231,16 +272,34 @@ DEFAULT 列表的值不在前面的分区中，则就存放在这个默认分区
 
 从语法上看，可以省略表空间(TABLESPACE test_tbs_01),使用默认表空间进行创建。
 
--- 插入数据
+#### 操作数据
+```
+delete from AUS_BONUS_HASH;
 insert into AUS_BONUS_HASH as select * from AUS_BONUS;
+select * from AUS_BONUS_HASH partition(AUS_BONUS_PART01);
+select * from AUS_BONUS_HASH partition(AUS_BONUS_PART02);
+select * from AUS_BONUS_HASH partition(AUS_BONUS_PART03);
+select * from AUS_BONUS_HASH partition(AUS_BONUS_PART04);
+```
 
-查询分区字典信息，脚本参考上面
+#### 查询分区字典信息，脚本参考上面
+```
+select table_name,partitioning_type,partition_count,status 
+from dba_part_tables 
+where table_name='AUS_BONUS_HASH';
 
+select table_name,partition_name,num_rows,tablespace_name,segment_created
+from dba_tab_partitions 
+where table_name='AUS_BONUS_HASH';
+```
 
 ### 4. 组合分区策略
 
 下面我们通过两种分区策略来实现分区  LIST-LIST
 使用data_origin和trans_origin栏位来分区
+
+#### 创建分区表
+
 ```
 CREATE TABLE AUS_BONUS_LIST_LIST
 (
@@ -263,18 +322,18 @@ PARTITION AUS_BONUS_PART01 VALUES (81) TABLESPACE test_tbs_01
   ),
 PARTITION AUS_BONUS_PART02 VALUES (82) TABLESPACE test_tbs_02
   (
-    SUBPARTITION AUS_BONUS_SUB_PART01 VALUES('1', '5','7', '9') tablespace test_tbs_02,
-    SUBPARTITION AUS_BONUS_SUB_PART02 VALUES('2') tablespace test_tbs_02
+    SUBPARTITION AUS_BONUS_SUB_PART03 VALUES('1', '5','7', '9') tablespace test_tbs_02,
+    SUBPARTITION AUS_BONUS_SUB_PART04 VALUES('2') tablespace test_tbs_02
   ),
 PARTITION AUS_BONUS_PART03 VALUES (83) TABLESPACE test_tbs_03
   (
-    SUBPARTITION AUS_BONUS_SUB_PART01 VALUES('1', '5','7', '9') tablespace test_tbs_03,
-    SUBPARTITION AUS_BONUS_SUB_PART02 VALUES('2') tablespace test_tbs_03
+    SUBPARTITION AUS_BONUS_SUB_PART05 VALUES('1', '5','7', '9') tablespace test_tbs_03,
+    SUBPARTITION AUS_BONUS_SUB_PART06 VALUES('2') tablespace test_tbs_03
   ),
 PARTITION AUS_BONUS_PART04 VALUES (DEFAULT) TABLESPACE test_tbs_04
   (
-    SUBPARTITION AUS_BONUS_SUB_PART01 VALUES('1', '5','7', '9') tablespace test_tbs_04,
-    SUBPARTITION AUS_BONUS_SUB_PART02 VALUES('2') tablespace test_tbs_04
+    SUBPARTITION AUS_BONUS_SUB_PART07 VALUES('1', '5','7', '9') tablespace test_tbs_04,
+    SUBPARTITION AUS_BONUS_SUB_PART08 VALUES('2') tablespace test_tbs_04
   )
 );
 ```
@@ -283,18 +342,66 @@ PARTITION AUS_BONUS_PART04 VALUES (DEFAULT) TABLESPACE test_tbs_04
 
 从语法上看，可以省略表空间(TABLESPACE test_tbs_01),使用默认表空间进行创建。
 
--- 插入数据
+#### 操作数据
+```
+delete from AUS_BONUS_LIST_LIST;
 insert into AUS_BONUS_LIST_LIST as select * from AUS_BONUS;
 
-查询分区字典信息，脚本参考上面
+select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_PART01);
+select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_PART02);
+select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_PART03);
+select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_PART04);
 
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART01);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART02);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART03);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART04);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART05);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART06);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART07);
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART08);
+```
 
+#### 查询分区字典信息，脚本参考上面
+```
+select table_name,partitioning_type,partition_count,status 
+from dba_part_tables 
+where table_name='AUS_BONUS_LIST_LIST';
+
+select table_name,partition_name,num_rows,tablespace_name,segment_created
+from dba_tab_partitions 
+where table_name='AUS_BONUS_LIST_LIST';
+
+select partition_name,subpartition_name,tablespace_name,num_rows,segment_created 
+from dba_tab_subpartitions 
+where table_name='AUS_BONUS_LIST_LIST';
+```
 
 ## 5. 如何查询分区数据
 
+通过分区查看业务数据
+```
 select * from AUS_BONUS_RANGE partition(AUS_BONUS_PART01);
 
 select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_SUB_PART01);
+
+select * from AUS_BONUS_LIST_LIST subpartition(AUS_BONUS_SUB_PART01);
+```
+
+查看分区信息
+```
+select table_name,partitioning_type,partition_count,status 
+from dba_part_tables 
+where table_name='AUS_BONUS_LIST_LIST';
+
+select table_name,partition_name,num_rows,tablespace_name,segment_created
+from dba_tab_partitions 
+where table_name='AUS_BONUS_LIST_LIST';
+
+select partition_name,subpartition_name,tablespace_name,num_rows,segment_created 
+from dba_tab_subpartitions 
+where table_name='AUS_BONUS_LIST_LIST';
+```
 
 ## 6. 表分区维护
 
@@ -303,9 +410,9 @@ select * from AUS_BONUS_LIST_LIST partition(AUS_BONUS_SUB_PART01);
 新增分区: AUS_BONUS_RANGE新增AUS_BONUS_PART05分区
 ```
 ALTER TABLE AUS_BONUS_RANGE 
-ADD PARTITION AUS_BONUS_PART05 VALUES LESS THAN(TO_DATE('2003-06-01','YYYY-MM-DD'));
+ADD PARTITION AUS_BONUS_PART05 VALUES LESS THAN(TO_DATE('2020-01-01','YYYY-MM-DD'));
 ```
-注意：以上添加的分区界限应该高于最后一个分区界限。
+注意：以上添加的分区界限应该高于最后一个分区界限。若直接执行将提示报错，删除AUS_BONUS_PART04分区，或重新表。
 
 新增子分区: AUS_BONUS_LIST_LIST的AUS_BONUS_PART04分区,新增AUS_BONUS_SUB_PART03子分区
 ```
@@ -358,3 +465,49 @@ ADD SUBPARTITION AUS_BONUS_SUB_PART03 VALUES('3');
 
 `ALTER TABLE AUS_BONUS_RANGE RENAME PARTITION AUS_BONUS_PART02 TO AUS_BONUS_PART05;`
 
+7. 清除所有对象
+
+上面的实例，我们只是会了验证表分区的使用，使用结束后，应该清除
+
+```
+DROP TABLE AUS_BONUS_RANGE;
+DROP TABLE AUS_BONUS_LIST;
+DROP TABLE AUS_BONUS_HASH;
+DROP TABLE AUS_BONUS_LIST_LIST;
+
+```
+
+8. 扩展了解表空间
+
+查看文件对应表空间
+
+`select * from dba_data_files;`
+
+--查看表空间的使用情况
+```
+SELECT a.tablespace_name,
+       total ,
+       free ,
+       (total - free) used,
+       total / (1024 * 1024 * 1024) total_G,
+       free / (1024 * 1024 * 1024) free_G ,
+       (total - free) / (1024 * 1024 * 1024) userd_G ,
+       round((total - free) / total, 4) * 100 使用率
+  FROM (SELECT tablespace_name, SUM(bytes) free
+          FROM dba_free_space
+         GROUP BY tablespace_name) a,
+       (SELECT tablespace_name, SUM(bytes) total
+          FROM dba_data_files
+         GROUP BY tablespace_name) b
+ WHERE a.tablespace_name = b.tablespace_name;
+```
+
+表空间对应物理文件
+```
+select tablespace_name,
+       file_id,
+       file_name,
+       round(bytes / (1024 * 1024), 0) total_space
+  from dba_data_files
+ order by tablespace_name
+```

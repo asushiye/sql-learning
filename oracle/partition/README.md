@@ -16,6 +16,7 @@
 			拆分分区
 		7. 清除所有对象
 		8. 扩展了解表空间
+		9. 操作表分区时，需要重建索引
 
 ## 1. 为什么要对表分区
 
@@ -428,23 +429,33 @@ ADD SUBPARTITION AUS_BONUS_SUB_PART03 VALUES('3');
 ### 删除分区 
 
 删除分区: AUS_BONUS_RANGE删除AUS_BONUS_PART05分区：
+
 `ALTER TABLE AUS_BONUS_RANGE DROP PARTITION AUS_BONUS_PART05;`
 
 删除子分区: AUS_BONUS_RANGE删除AUS_BONUS_SUB_PART03子分区：
+
 `ALTER TABLE AUS_BONUS_RANGE DROP SUBPARTITION AUS_BONUS_SUB_PART03;`
 
 注意：如果删除的分区是表中唯一的分区，那么此分区将不能被删除，要想删除此分区，必须删除表。
+
+删除表空间，建议重新更新全局索引
+
+`ALTER TABLE AUS_BONUS_RANGE DROP PARTITION AUS_BONUS_PART05 UPDATE GLOBAL INDEXES;`
+
+`ALTER TABLE AUS_BONUS_RANGE DROP SUBPARTITION AUS_BONUS_SUB_PART03 UPDATE GLOBAL INDEXES;`
+
 
 ### 截断分区 
 截断某个分区是指删除某个分区中的数据，并不会删除分区，也不会删除其它分区中的数据。
 
 当表中即使只有一个分区时，也可以截断该分区。通过以下代码截断分区：
 
-`ALTER TABLE AUS_BONUS_RANGE TRUNCATE PARTITION AUS_BONUS_PART04;`
+`ALTER TABLE AUS_BONUS_RANGE TRUNCATE PARTITION AUS_BONUS_PART04 ;`
 
 通过以下代码截断子分区：
 
 `ALTER TABLE AUS_BONUS_RANGE TRUNCATE SUBPARTITION AUS_BONUS_SUB_PART02;`
+
 
 ### 合并分区 
 合并分区是将相邻的分区合并成一个分区，结果分区将采用较高分区的界限，
@@ -516,3 +527,14 @@ select tablespace_name,
   from dba_data_files
  order by tablespace_name
 ```
+
+
+## 9. 操作表分区时，需要重建索引
+
+重建全表索引
+
+alter index index_name rebuild;
+
+重新分区索引
+
+alter index index_name rebuild partition partition_name ;

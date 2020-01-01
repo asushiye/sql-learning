@@ -409,6 +409,15 @@ from dba_tab_subpartitions
 where table_name='AUS_BONUS_LIST_LIST';
 ```
 
+查看分区和索引
+
+```
+select * from user_ind_partitions where index_name like 'AUS_BONUS%';
+select * from user_ind_subpartitions where index_name like 'AUS_BONUS%';
+```
+
+可查看分区的索引状态，重建分区索引
+
 ## 6. 表分区维护
 
 ### 添加分区 
@@ -530,6 +539,22 @@ select tablespace_name,
 
 
 ## 9. 操作表分区时，需要重建索引
+
+查看索引状态：
+select distinct status from user_indexes;
+
+    N/A说明这个是分区索引需要查user_ind_partitions或者user_ind_subpartitions来确定每个分区是否可用；
+```
+select * from user_ind_partitions where index_name like 'AUS_BONUS%';
+select * from user_ind_subpartitions where index_name like 'AUS_BONUS%';
+```
+
+select * from user_indexes where status='N/A' ;
+
+    VAILD说明这个索引可用；
+    UNUSABLE说明这个索引不可用；
+    USABLE 说明这个索引的分区是可用的。
+
 
 重建全表索引
 
